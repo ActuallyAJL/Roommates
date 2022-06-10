@@ -7,7 +7,51 @@ namespace Roommates.Repositories
     public class RoommateRepository : BaseRepository
     {
         public RoommateRepository(string connectionString) : base(connectionString) { }
-     
+
+        public List<Roommate> GetAll()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT * FROM Roommate JOIN Room ON Roommate.RoomId = Room.Id";
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        List<Roommate> roommates = new List<Roommate>();
+
+                        while (reader.Read())
+                        {
+                            int idValue = reader.GetInt32(reader.GetOrdinal("Id"));
+                            string fnameValue = reader.GetString(reader.GetOrdinal("FirstName"));
+                            string lnameValue = reader.GetString(reader.GetOrdinal("LastName"));
+                            int portion = reader.GetInt32(reader.GetOrdinal("RentPortion"));
+
+                            Room room = new Room
+                            {
+                                Name = reader.GetString(reader.GetOrdinal("Name"))
+                            };
+
+                            Roommate roommate = new Roommate
+                            {
+                                Id = idValue,
+                                FirstName = fnameValue,
+                                LastName = lnameValue,
+                                RentPortion = portion,
+                                Room = room
+                            };
+
+                            roommates.Add(roommate);
+                        }
+
+                        return roommates;
+                    }
+                }
+            }
+        }
+
         public Roommate GetById(int id)
         {
             using (SqlConnection conn = Connection)
